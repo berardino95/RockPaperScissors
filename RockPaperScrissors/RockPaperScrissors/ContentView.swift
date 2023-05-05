@@ -12,13 +12,15 @@ struct ContentView: View {
     let moves = ["🪨", "📄", "✂️"]
     @State private var userChoice : String = ""
     @State private var appChoice : String = ""
+    
     @State private var alertText : String = ""
     @State private var userScore: Int = 0
+    @State private var alertIsShowed : Bool = false
+    @State private var endAlertIsShowed : Bool = false
+    
     @State private var appScore: Int = 0
     @State private var round: Int = 1
     var remainingCoin: Int { 8 - round + 1 }
-    @State private var alertIsShowed : Bool = false
-    @State private var endAlertIsShowed : Bool = false
     
     
     var body: some View {
@@ -37,12 +39,24 @@ struct ContentView: View {
                     Text("Your choice")
                     Text(userChoice)
                         .emoji()
+                        .scaleEffect(userChoice.isEmpty ? 1.2 : 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(.green, lineWidth: 2)
+                        )
+                        .animation(.easeOut, value: userChoice)
                 }
                 Spacer()
                 VStack{
                     Text("Pc choice")
                     Text(appChoice)
                         .emoji()
+                        .scaleEffect(userChoice.isEmpty ? 1.2 : 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(.green, lineWidth: 2)
+                        )
+                        .animation(.easeOut, value: userChoice)
                 }
                 
                 Spacer()
@@ -58,6 +72,10 @@ struct ContentView: View {
                             check(move)
                         }
                         .buttonStyle(moveButton())
+                        .scaleEffect(!userChoice.isEmpty && userChoice == move ? 1.1 : 1)
+                        .scaleEffect(!userChoice.isEmpty && userChoice != move ? 0.9 : 1)
+                        .opacity(!userChoice.isEmpty && userChoice != move ? 0.8 : 1)
+                        .animation(.easeOut, value: userChoice)
                     }
                 }
                 .padding()
@@ -112,39 +130,41 @@ struct ContentView: View {
         appChoice = moves.randomElement()!
         userChoice = move
         
-        if round == 8 {
-            endAlertIsShowed = true
-        } else {
-            alertIsShowed = true
-        }
-        switch (userChoice, appChoice) {
-        case ("📄","🪨") :
-            alertText = "You won"
-            userScore += 1
-            round += 1
-        case ("✂️","📄") :
-            alertText = "You won"
-            userScore += 1
-            round += 1
-        case ("🪨","✂️") :
-            alertText = "You won"
-            userScore += 1
-            round += 1
-        case ("🪨","📄") :
-            alertText = "You lose"
-            appScore += 1
-            round += 1
-        case ("📄","✂️") :
-            alertText = "You lose"
-            appScore += 1
-            round += 1
-        case ("✂️","🪨") :
-            alertText = "You lose"
-            appScore += 1
-            round += 1
-        default:
-            alertText = "Draw"
-            round += 1
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5){
+            if round == 8 {
+                endAlertIsShowed = true
+            } else {
+                alertIsShowed = true
+            }
+            switch (userChoice, appChoice) {
+            case ("📄","🪨") :
+                alertText = "You won"
+                userScore += 1
+                round += 1
+            case ("✂️","📄") :
+                alertText = "You won"
+                userScore += 1
+                round += 1
+            case ("🪨","✂️") :
+                alertText = "You won"
+                userScore += 1
+                round += 1
+            case ("🪨","📄") :
+                alertText = "You lose"
+                appScore += 1
+                round += 1
+            case ("📄","✂️") :
+                alertText = "You lose"
+                appScore += 1
+                round += 1
+            case ("✂️","🪨") :
+                alertText = "You lose"
+                appScore += 1
+                round += 1
+            default:
+                alertText = "Draw"
+                round += 1
+            }
         }
     }
 }
@@ -168,10 +188,6 @@ struct Emoji : ViewModifier {
         content
             .font(.system(size: 90))
             .frame(width: 140, height: 140)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(.green, lineWidth: 2)
-            )
     }
 }
 
